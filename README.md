@@ -124,6 +124,72 @@ Data Preparation
 * แก้ข้อมูลให้ถูกต้อง : จัดรูปแบบวันที่, Replace Value ให้เริ่มด้วยพิมพ์ใหญ่ใน Column Status
 ---
 
+## Numerical Data: How to Calculate
+
+### Calculated Columns (Data Model)
+
+| Field | Formula | Description |
+|---|---|---|
+| **total_guests** | `=[@[adults_count]] + [@[children_count]]` | จำนวนผู้เข้าพักทั้งหมด |
+| **LOS (Length of Stay)** | `=[@[check_out_date]] - [@[check_in_date]]` | จำนวนคืนที่เข้าพัก |
+| **BLT (Booking Lead Time)** | `=ABS([@[check_in_date]] - [@[booking_date]])` | จำนวนวันจองล่วงหน้า |
+| **commission_cost** | `=fact_bookings[total_room_revenue] * RELATED(dim_channels[commission_rate])` | ค่าคอมมิชชันจากช่องทางการจอง |
+| **net_room_revenue** | `=[@[total_room_revenue]] - [@[commission_cost]]` | รายได้สุทธิหลังหักค่าคอมมิชชัน |
+| **room_sold** | `=[@[number_of_rooms]] * [@LOS]` | จำนวน Room-night ที่ขายได้ |
+
+---
+
+### Measures 
+
+| Measure | Formula | Description |
+|---|---|---|
+| **Total_Room_Sold** | `=CALCULATE(SUM(fact_bookings[room_sold]), fact_bookings[status] <> "Cancelled", fact_bookings[status] <> "No-Show")` | จำนวนห้องที่ขายจริง (ไม่รวม Cancelled และ No-Show) |
+| **Total_Revenue** | `=SUM(fact_bookings[total_room_revenue])` | รายได้รวมจากห้องพัก |
+| **Total_Rooms_Available** | `=SUM(dim_room_inventory[rooms_available_for_sale])` | จำนวนห้องที่พร้อมขายทั้งหมด |
+| **RevPAR** | `=[Total_Revenue] / [Total_Rooms_Available]` | รายได้ต่อห้องพักที่เปิดขาย |
+| **ADR** | `=[Total_Revenue] / [Rooms_Sold]` | รายได้เฉลี่ยต่อห้องที่ขายได้ |
+| **OCC** | `=[Rooms_Sold] / [Total_Rooms_Available]` | อัตราการเข้าพัก |
+| **Average BLT** | `=AVERAGE(fact_bookings[BLT])` | ค่าเฉลี่ยระยะเวลาจองล่วงหน้า |
+| **Average LOS** | `=AVERAGE(fact_bookings[LOS])` | ค่าเฉลี่ยจำนวนคืนที่เข้าพัก |
+
+---
+## Derived Dimensions Tables
+
+---
+
+### Table: dim_roomtype
+
+สร้างตาราง `dim_roomtype` เพิ่มเติมเพื่อใช้จัดกลุ่มประเภทห้องพัก และช่วยในการวิเคราะห์ RevPAR, ADR และ Occupancy ตามประเภทห้อง
+
+| Attribute | Type | Description | Valid Range / Example |
+| :--- | :--- | :--- | :--- |
+| **room_type_id** | Nominal | รหัสประเภทห้อง | RT_STD, RT_DLX, RT_FAM, RT_EXEC, RT_SUIT |
+| **room_type_name** | Nominal | ชื่อประเภทห้องพัก | Standard Room, Deluxe Room, Family Room, Executive Room, Suite Room |
+| **base_price** | Ratio | ราคาพื้นฐานของห้องพัก | 350, 550, 800, 1100, 1200 |
+
+#### Purpose
+- ใช้แยกประเภทห้องพักสำหรับการวิเคราะห์รายได้
+- ใช้วิเคราะห์ Room Type ที่สร้าง RevPAR สูงสุด
+- ใช้เปรียบเทียบประสิทธิภาพของห้องพักแต่ละประเภท
+
+---
+
+### Table: dim_segments
+
+สร้างตาราง `dim_segments` เพิ่มเติมเพื่อจัดกลุ่มประเภทลูกค้า และใช้วิเคราะห์พฤติกรรมการจองของลูกค้าแต่ละกลุ่ม
+
+| Attribute | Type | Description | Valid Range / Example |
+| :--- | :--- | :--- | :--- |
+| **segment_id** | Nominal | รหัสกลุ่มลูกค้า | SEG_CORP, SEG_LEIS, SEG_GRP, SEG_GOV, SEG_PKG |
+| **segment_name** | Nominal | ชื่อกลุ่มลูกค้า | Corporate, Leisure, Group, Government, Package |
+
+#### Purpose
+- ใช้วิเคราะห์ Customer Segment ที่สร้างรายได้สูง
+- ใช้วิเคราะห์ความสัมพันธ์ระหว่าง Room Type และ Customer Segment
+- ใช้เปรียบเทียบพฤติกรรมการจองของลูกค้าแต่ละกลุ่ม
+
+---
+
 Hypothesis 1 :  Booking Channel แต่ละประเภทให้กำไรสุทธิ (Net RevPAR) แตกต่างกันอย่างมีนัยสำคัญ โดย Direct Channel ให้ Net RevPAR สูงกว่า OTA หลังหักค่าคอมมิชชัน     
 ---
 **กราฟ :** เปรียบเทียบรายได้เฉลี่ยสุทธิและกำไรสุทธิต่อห้อง (Net RevPAR) ของ Booking channal ต่างๆ  
