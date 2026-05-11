@@ -40,7 +40,7 @@ Hypothesis
 * H1: Booking Channel แต่ละประเภทให้กำไรสุทธิ (Net RevPAR) แตกต่างกันอย่างมีนัยสำคัญ โดย Direct Channel ให้ Net RevPAR สูงกว่า OTA หลังหักค่าคอมมิชชัน
 * H2: Room Type และ Customer Segment บางกลุ่มมีค่า RevPAR สูงกว่าค่าเฉลี่ยของโรงแรมอย่างมีนัยสำคัญ 
 * H3: การปรับราคาตามวันในสัปดาห์และฤดูกาล ส่งผลให้ RevPAR เพิ่มขึ้นอย่างมีนัยสำคัญ โดยไม่ลด Occupancy 
-* H4: Room Type (เช่น Suite) มีความต้องการต่ำในวันธรรมดา และยังไม่มี pricing/promotion ที่เหมาะสมเพื่อกระตุ้น demand 
+* H4: Room Type มี RevPAR ต่ำในวันธรรมดา และยังขาด pricing/promotion ที่เหมาะสม ส่งผลให้ RevPAR โดยรวมของโรงแรมลดลง
 ---
 
 Data Dictionary
